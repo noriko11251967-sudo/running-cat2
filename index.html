@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>走る黒猫アニメ</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body {
+      background: #fde7ed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #cat {
+      width: 200px;
+      image-rendering: pixelated; /* ちょっとシャープに見せる */
+    }
+  </style>
+</head>
+<body>
+  <img id="cat" src="cat1.png" alt="黒猫">
+
+  <script>
+    const cat = document.getElementById("cat");
+    const frames = ["cat1.png", "cat2.png"];
+    let current = 0;
+
+    // 150msごとに画像を切り替える
+    setInterval(() => {
+      current = (current + 1) % frames.length;
+      cat.src = frames[current];
+    }, 150);
+  </script>
+</body>
+</html>
