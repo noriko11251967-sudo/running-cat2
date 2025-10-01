@@ -47,7 +47,7 @@
         // 左→右
         cat.style.left = "-200px";
         cat.style.top = randomY + "px";
-        cat.style.transform = "scaleX(-1)"; // ← 反転して右向きに！
+        cat.style.transform = "scaleX(1)"; // ← 反転して右向きに！
         setTimeout(() => {
           cat.style.transition = "left 3s linear";
           cat.style.left = screenW + "px";
@@ -56,7 +56,7 @@
         // 右→左
         cat.style.left = screenW + "px";
         cat.style.top = randomY + "px";
-        cat.style.transform = "scaleX(1)"; // ← そのまま左向き！
+        cat.style.transform = "scaleX(-1)"; // ← そのまま左向き！
         setTimeout(() => {
           cat.style.transition = "left 3s linear";
           cat.style.left = "-200px";
