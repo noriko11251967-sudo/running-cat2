@@ -2,25 +2,19 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>猫ランナー</title>
+  <title>走る猫アニメーション</title>
   <style>
     body {
       margin: 0;
       background: pink;
       overflow: hidden;
     }
-
     #cat {
       position: absolute;
-      bottom: 100px;    /* 走る高さ（あとでランダムにできるよ） */
-      left: -200px;     /* 画面外スタート */
-      width: 200px;
-      transition: left 3s linear; /* 3秒かけて移動 */
-    }
-
-    /* 左右反転（左向き用） */
-    .flip {
-      transform: scaleX(-1);
+      width: 150px;
+      top: 50%;
+      left: -200px;
+      transform: translateY(-50%);
     }
   </style>
 </head>
@@ -29,32 +23,54 @@
 
   <script>
     const cat = document.getElementById("cat");
-    let frame = 1;         // cat1 or cat2
-    let goingRight = true; // 向き
+    const frames = ["cat1.png", "cat2.png"];
+    let frame = 0;
 
-    // 足の動きを再現（cat1.png ↔ cat2.png）
+    // フレーム切り替え（走ってるアニメ）
     setInterval(() => {
-      frame = (frame === 1) ? 2 : 1;
-      cat.src = `cat${frame}.png`;
-    }, 150); // 0.15秒ごとに切り替え
+      frame = (frame + 1) % frames.length;
+      cat.src = frames[frame];
+    }, 200);
 
-    // 往復ラン関数
-    function run() {
-      if (goingRight) {
-        cat.style.left = "100%";   // 右端へ
-        cat.classList.remove("flip"); // 通常（右向き）
+    // 猫の移動アニメ
+    function moveCat() {
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
+
+      // 高さをランダムに設定
+      const randomY = Math.random() * (screenH - 200) + 50;
+
+      // 左から右 or 右から左をランダムに決定
+      const direction = Math.random() > 0.5 ? "right" : "left";
+
+      if (direction === "right") {
+        // 左→右
+        cat.style.left = "-200px";
+        cat.style.top = randomY + "px";
+        cat.style.transform = "scaleX(1)"; // 正常向き
+        setTimeout(() => {
+          cat.style.transition = "left 3s linear";
+          cat.style.left = screenW + "px";
+        }, 50);
       } else {
-        cat.style.left = "-200px"; // 左端へ
-        cat.classList.add("flip"); // 左向き
+        // 右→左
+        cat.style.left = screenW + "px";
+        cat.style.top = randomY + "px";
+        cat.style.transform = "scaleX(-1)"; // 左右反転
+        setTimeout(() => {
+          cat.style.transition = "left 3s linear";
+          cat.style.left = "-200px";
+        }, 50);
       }
-      goingRight = !goingRight; // 方向切り替え
+
+      // 終了後に次の動きを呼び出す
+      setTimeout(() => {
+        cat.style.transition = "none";
+        moveCat();
+      }, 4000); // 3秒走って1秒休憩
     }
 
-    // 3秒ごとに run 実行
-    setInterval(run, 3000);
-
-    // 最初にスタート
-    run();
+    moveCat();
   </script>
 </body>
 </html>
