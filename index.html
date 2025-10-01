@@ -1,76 +1,201 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>走る猫アニメーション</title>
+  <meta charset="UTF-8" />
+  <title>黒猫ランナー・クリックゲーム</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: white;
+      background: #ffffff; /* 背景色。ピンクに戻すなら #fde7ed などに */
+      height: 100vh;
       overflow: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #222;
+      display: flex;
+      flex-direction: column;
     }
+    header {
+      text-align: center;
+      padding: 10px 8px;
+      border-bottom: 1px solid #eee;
+    }
+    h1 { margin: 0 0 6px; font-size: 18px; }
+    #score, #timer { margin: 0; font-size: 16px; }
+
+    /* プレイエリア */
+    #stage {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    /* 猫（2コマ切り替え用の <img> を1枚だけ使う） */
     #cat {
       position: absolute;
-      width: 400px;
+      width: 400px;             /* 大きさはお好みで */
+      left: -220px;             /* 画面外スタート */
       top: 50%;
-      left: -200px;
       transform: translateY(-50%);
+      user-select: none;
+      -webkit-user-drag: none;
+      transition: left 2.5s linear; /* 横移動の秒数 */
+      cursor: pointer;
+    }
+
+    /* 左右反転（向き） */
+    .flip { transform: translateY(-50%) scaleX(-1); }
+
+    /* 終了オーバーレイ */
+    #over {
+      position: absolute; inset: 0;
+      display: none;
+      align-items: center; justify-content: center;
+      background: rgba(255,255,255,.65);
+      font-size: 28px; font-weight: 700;
+      text-align: center;
+    }
+    #over.show { display: flex; }
+
+    /* クリック時のプチ演出 */
+    .pop { animation: pop .15s ease-out; }
+    @keyframes pop {
+      0% { transform: translateY(-50%) scale(1); }
+      50% { transform: translateY(-50%) scale(1.08); }
+      100% { transform: translateY(-50%) scale(1); }
+    }
+    .flip.pop { animation: popFlip .15s ease-out; }
+    @keyframes popFlip {
+      0% { transform: translateY(-50%) scaleX(-1) scale(1); }
+      50% { transform: translateY(-50%) scaleX(-1) scale(1.08); }
+      100% { transform: translateY(-50%) scaleX(-1) scale(1); }
     }
   </style>
 </head>
 <body>
-  <img id="cat" src="cat1.png" alt="cat">
+  <header>
+    <h1>黒猫ランナー・クリックゲーム 🐈‍⬛</h1>
+    <p id="score">スコア: 0</p>
+    <p id="timer">残り時間: 15秒</p>
+  </header>
+
+  <div id="stage">
+    <img id="cat" src="cat1.png" alt="cat">
+    <div id="over">ゲーム終了！<br>もう一度リロードしてね</div>
+  </div>
 
   <script>
+    /* 必要ファイル：cat1.png（ポーズ1）, cat2.png（ポーズ2）
+       ※ 画像のデフォルト向きが「左向き」の前提で制御しています。
+       もし元画像が右向きなら、下の scaleX の割り当てを逆にしてください（コメント参照）。 */
+
     const cat = document.getElementById("cat");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+    const over = document.getElementById("over");
+    const stage = document.getElementById("stage");
+
+    let score = 0;
+    let time = 15;
+    let playing = true;
+
+    // === 走ってる見え方（2コマ切り替え） ===
     const frames = ["cat1.png", "cat2.png"];
-    let frame = 0;
+    let f = 0;
+    const frameInterval = setInterval(() => {
+      if (!playing) return;
+      f = (f + 1) % frames.length;
+      cat.src = frames[f];
+    }, 150); // 切り替え速度（ms）
 
-    // フレーム切り替え（走ってるアニメーション）
-    setInterval(() => {
-      frame = (frame + 1) % frames.length;
-      cat.src = frames[frame];
-    }, 200);
+    // === 左右往復移動（高さランダム） ===
+    let goingRight = true; // 左→右→左→…と交互
+    function runOnce() {
+      if (!playing) return;
 
-    // 猫の移動アニメ
-    function moveCat() {
-      const screenW = window.innerWidth;
-      const screenH = window.innerHeight;
+      const W = stage.clientWidth;
+      const H = stage.clientHeight;
+      // 上下の余白を確保（画像高さを加味してクリックしやすい帯に）
+      const minY = 40, maxY = Math.max(60, H - 160);
+      const y = Math.floor(Math.random() * (maxY - minY)) + minY;
 
-      // 高さをランダムに設定
-      const randomY = Math.random() * (screenH - 200) + 50;
-
-      // 左から右 or 右から左をランダムに決定
-      const direction = Math.random() > 0.5 ? "right" : "left";
-
-      if (direction === "right") {
+      if (goingRight) {
         // 左→右
-        cat.style.left = "-200px";
-        cat.style.top = randomY + "px";
-        cat.style.transform = "scaleX(-1)"; // ← 反転して右向きに！
-        setTimeout(() => {
-          cat.style.transition = "left 3s linear";
-          cat.style.left = screenW + "px";
-        }, 50);
+        cat.style.transition = "none";
+        cat.style.left = "-220px";
+        cat.style.top = y + "px";
+        // 元画像が左向きの場合、右へ走る時は反転して右向きに：
+        cat.classList.add("flip"); // ← 右向き（元が左向き前提）
+        // もし元画像が右向きなら、↑を cat.classList.remove("flip") に変更
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            cat.style.transition = "left 2.5s linear";
+            cat.style.left = W + "px";
+          });
+        });
       } else {
         // 右→左
-        cat.style.left = screenW + "px";
-        cat.style.top = randomY + "px";
-        cat.style.transform = "scaleX(1)"; // ← そのまま左向き！
-        setTimeout(() => {
-          cat.style.transition = "left 3s linear";
-          cat.style.left = "-200px";
-        }, 50);
+        cat.style.transition = "none";
+        cat.style.left = W + "px";
+        cat.style.top = y + "px";
+        // 左へ走る時は左向き（元が左向き前提なので反転なし）：
+        cat.classList.remove("flip"); // ← 左向き（元が左向き前提）
+        // もし元画像が右向きなら、↑を cat.classList.add("flip") に変更
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            cat.style.transition = "left 2.5s linear";
+            cat.style.left = "-220px";
+          });
+        });
       }
 
-      // 終了後に次の動きを呼び出す
-      setTimeout(() => {
-        cat.style.transition = "none";
-        moveCat();
-      }, 4000); // 3秒走って1秒休憩
+      goingRight = !goingRight;
+
+      // 走り切ったら1秒休憩して次
+      // （2.5秒移動 + 1秒休憩 = 3.5秒周期）
+      setTimeout(() => { if (playing) runOnce(); }, 3500);
     }
 
-    moveCat();
+    // === クリックでスコア ===
+    cat.addEventListener("click", () => {
+      if (!playing) return;
+      score++;
+      scoreEl.textContent = "スコア: " + score;
+      // ちょい演出
+      cat.classList.remove("pop"); cat.classList.remove("flipPop");
+      // flip状態かどうかで別アニメ適用
+      if (cat.classList.contains("flip")) {
+        cat.classList.add("pop");
+      } else {
+        cat.classList.add("pop");
+      }
+      // クラスは短時間で自動に戻る（CSSのkeyframesでOK）
+    }, { passive: true });
+
+    // === タイマー ===
+    const countdown = setInterval(() => {
+      time--;
+      timerEl.textContent = "残り時間: " + Math.max(0, time) + "秒";
+      if (time <= 0) {
+        clearInterval(countdown);
+        playing = false;
+        over.classList.add("show");
+      }
+    }, 1000);
+
+    // 初回スタート
+    window.addEventListener("load", () => {
+      runOnce();
+    });
+
+    // 画面サイズが変わった時もはみ出しにくく
+    window.addEventListener("resize", () => {
+      // 次の runOnce で位置を取り直すので特別処理は不要
+    });
   </script>
 </body>
 </html>
