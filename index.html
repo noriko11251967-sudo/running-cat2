@@ -35,8 +35,8 @@
     /* 猫（2コマ切り替え用の <img> を1枚だけ使う） */
     #cat {
       position: absolute;
-      width: 400px;             /* 大きさはお好みで */
-      left: -220px;             /* 画面外スタート */
+      width: 300px;             /* 大きさはお好みで */
+      left: -250px;             /* 画面外スタート */
       top: 50%;
       transform: translateY(-50%);
       user-select: none;
@@ -124,7 +124,7 @@
       if (goingRight) {
         // 左→右
         cat.style.transition = "none";
-        cat.style.left = "-220px";
+        cat.style.left = "-250px";
         cat.style.top = y + "px";
         // 元画像が左向きの場合、右へ走る時は反転して右向きに：
         cat.classList.add("flip"); // ← 右向き（元が左向き前提）
