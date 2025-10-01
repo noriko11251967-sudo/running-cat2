@@ -2,35 +2,57 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>走る黒猫アニメ</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>黒猫ランナー</title>
   <style>
     body {
-      background: #fde7ed;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      margin: 0;
+      background-color: pink;
+      overflow: hidden; /* はみ出した猫を隠す */
       height: 100vh;
     }
     #cat {
-      width: 200px;
-      image-rendering: pixelated; /* ちょっとシャープに見せる */
+      position: absolute;
+      width: 120px; /* 猫の大きさ */
+      transition: transform 2s linear;
     }
   </style>
 </head>
 <body>
-  <img id="cat" src="cat1.png" alt="黒猫">
+  <img id="cat" src="blackcat.png" alt="黒猫">
 
   <script>
     const cat = document.getElementById("cat");
-    const frames = ["cat1.png", "cat2.png"];
-    let current = 0;
+    let direction = "right"; // 初期は右に走る
 
-    // 150msごとに画像を切り替える
-    setInterval(() => {
-      current = (current + 1) % frames.length;
-      cat.src = frames[current];
-    }, 150);
+    function runCat() {
+      // 画面サイズを取得
+      const screenHeight = window.innerHeight;
+      const screenWidth = window.innerWidth;
+
+      // ランダムな高さ（上から50〜画面下-150の範囲）
+      const randomY = Math.floor(Math.random() * (screenHeight - 200)) + 50;
+
+      if (direction === "right") {
+        // 左から右へ
+        cat.style.transform = `translate(${screenWidth}px, ${randomY}px) scaleX(1)`;
+        direction = "left"; // 次は左へ
+      } else {
+        // 右から左へ
+        cat.style.transform = `translate(-150px, ${randomY}px) scaleX(-1)`;
+        direction = "right"; // 次は右へ
+      }
+
+      // 走り切った後、1秒休憩して再スタート
+      setTimeout(runCat, 3000); 
+      // （2s走る＋1s休憩 = 3sで次のrunCat）
+    }
+
+    // 最初の位置を左外にセット
+    cat.style.transform = "translate(-150px, 100px) scaleX(1)";
+
+    // 1秒後にスタート
+    setTimeout(runCat, 1000);
   </script>
 </body>
 </html>
