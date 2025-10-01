@@ -2,57 +2,59 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>黒猫ランナー</title>
+  <title>猫ランナー</title>
   <style>
     body {
       margin: 0;
-      background-color: pink;
-      overflow: hidden; /* はみ出した猫を隠す */
-      height: 100vh;
+      background: pink;
+      overflow: hidden;
     }
+
     #cat {
       position: absolute;
-      width: 120px; /* 猫の大きさ */
-      transition: transform 2s linear;
+      bottom: 100px;    /* 走る高さ（あとでランダムにできるよ） */
+      left: -200px;     /* 画面外スタート */
+      width: 200px;
+      transition: left 3s linear; /* 3秒かけて移動 */
+    }
+
+    /* 左右反転（左向き用） */
+    .flip {
+      transform: scaleX(-1);
     }
   </style>
 </head>
 <body>
-  <img id="cat" src="blackcat.png" alt="黒猫">
+  <img id="cat" src="cat1.png" alt="cat">
 
   <script>
     const cat = document.getElementById("cat");
-    let direction = "right"; // 初期は右に走る
+    let frame = 1;         // cat1 or cat2
+    let goingRight = true; // 向き
 
-    function runCat() {
-      // 画面サイズを取得
-      const screenHeight = window.innerHeight;
-      const screenWidth = window.innerWidth;
+    // 足の動きを再現（cat1.png ↔ cat2.png）
+    setInterval(() => {
+      frame = (frame === 1) ? 2 : 1;
+      cat.src = `cat${frame}.png`;
+    }, 150); // 0.15秒ごとに切り替え
 
-      // ランダムな高さ（上から50〜画面下-150の範囲）
-      const randomY = Math.floor(Math.random() * (screenHeight - 200)) + 50;
-
-      if (direction === "right") {
-        // 左から右へ
-        cat.style.transform = `translate(${screenWidth}px, ${randomY}px) scaleX(1)`;
-        direction = "left"; // 次は左へ
+    // 往復ラン関数
+    function run() {
+      if (goingRight) {
+        cat.style.left = "100%";   // 右端へ
+        cat.classList.remove("flip"); // 通常（右向き）
       } else {
-        // 右から左へ
-        cat.style.transform = `translate(-150px, ${randomY}px) scaleX(-1)`;
-        direction = "right"; // 次は右へ
+        cat.style.left = "-200px"; // 左端へ
+        cat.classList.add("flip"); // 左向き
       }
-
-      // 走り切った後、1秒休憩して再スタート
-      setTimeout(runCat, 3000); 
-      // （2s走る＋1s休憩 = 3sで次のrunCat）
+      goingRight = !goingRight; // 方向切り替え
     }
 
-    // 最初の位置を左外にセット
-    cat.style.transform = "translate(-150px, 100px) scaleX(1)";
+    // 3秒ごとに run 実行
+    setInterval(run, 3000);
 
-    // 1秒後にスタート
-    setTimeout(runCat, 1000);
+    // 最初にスタート
+    run();
   </script>
 </body>
 </html>
