@@ -34,11 +34,14 @@
 
     /* 猫（2コマ切り替え用の <img> を1枚だけ使う） */
     #cat {
-      position: absolute;
-      width: 300px;             /* 大きさはお好みで */
-      left: -250px;             /* 画面外スタート */
-      top: 50%;
-      transform: translateY(-50%);
+  position: absolute;
+  width: 300px;
+  left: -250px;
+  top: 50%;
+}
+.flip {
+  transform: scaleX(-1) translateY(-50%);
+}
       user-select: none;
       -webkit-user-drag: none;
       transition: left 2.5s linear; /* 横移動の秒数 */
